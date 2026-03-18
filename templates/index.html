@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>本地数据概览与清洗</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="title">本地数据概览与清洗</div>
+      <div class="subtitle">支持：CSV/JSON/JSONL/TXT/XLSX（本地上传、解析、统计、清洗、导出）</div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>1) 上传文件</h2>
+        <div id="dropzone" class="dropzone">
+          <div class="dz-title">拖拽文件到这里，或点击选择</div>
+          <div class="dz-hint">csv / json / jsonl / txt / xlsx</div>
+          <input id="fileInput" type="file" />
+        </div>
+
+        <div class="row">
+          <div id="uploadInfo" class="muted"></div>
+        </div>
+
+        <div id="metaBox" class="meta"></div>
+      </section>
+
+      <section class="card">
+        <h2>2) 列统计</h2>
+        <div id="profileTable" class="tableWrap"></div>
+      </section>
+
+      <section class="card">
+        <h2>3) 清洗（可选列）</h2>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>选择列</h3>
+            <div class="muted">不选默认全部列（部分操作仅对数值/文本列生效）</div>
+            <div id="colPicker" class="colPicker"></div>
+          </div>
+
+          <div class="panel">
+            <h3>操作</h3>
+
+            <div class="ops">
+              <label class="op"><input id="opDropDup" type="checkbox" /> 去重 drop_duplicates</label>
+              <label class="op"><input id="opDropNaRows" type="checkbox" /> 删除缺失行 drop_na_rows</label>
+
+              <div class="opGroup">
+                <div class="opTitle">缺失填充 fill_na</div>
+                <div class="row">
+                  <select id="fillMode">
+                    <option value="">不启用</option>
+                    <option value="mean">mean（数值列）</option>
+                    <option value="median">median（数值列）</option>
+                    <option value="value">value（填固定值）</option>
+                  </select>
+                  <input id="fillValue" placeholder="value 模式填充值（可选）" />
+                </div>
+              </div>
+
+              <div class="opGroup">
+                <div class="opTitle">截断极端值 clip_outliers_iqr（IQR）</div>
+                <div class="row">
+                  <label class="inline">k:</label>
+                  <input id="iqrK" value="1.5" />
+                  <label class="op"><input id="opClipIqr" type="checkbox" /> 启用</label>
+                </div>
+              </div>
+
+              <div class="opGroup">
+                <div class="opTitle">删除异常值行 remove_outliers_zscore（z-score）</div>
+                <div class="row">
+                  <label class="inline">z:</label>
+                  <input id="zThresh" value="3.0" />
+                  <label class="op"><input id="opRemoveZ" type="checkbox" /> 启用</label>
+                </div>
+              </div>
+
+              <label class="op"><input id="opMinMax" type="checkbox" /> 归一化 normalize_minmax</label>
+              <label class="op"><input id="opStdZ" type="checkbox" /> 标准化 standardize_zscore</label>
+              <label class="op"><input id="opTrim" type="checkbox" /> 文本清洗 trim_whitespace</label>
+              <label class="op"><input id="opLower" type="checkbox" /> 文本清洗 lowercase</label>
+            </div>
+
+            <div class="row">
+              <button id="btnApply" class="btn primary" disabled>应用清洗</button>
+              <button id="btnReset" class="btn" disabled>清除当前数据</button>
+            </div>
+
+            <div id="cleanInfo" class="muted"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4) 预览</h2>
+        <div id="previewBox" class="tableWrap"></div>
+      </section>
+
+      <section class="card">
+        <h2>5) 导出下载</h2>
+        <div class="row">
+          <button id="btnExportCsv" class="btn" disabled>下载 CSV</button>
+          <button id="btnExportJsonl" class="btn" disabled>下载 JSONL</button>
+        </div>
+        <div class="muted">导出基于服务端内存中的“当前数据”。</div>
+      </section>
+
+      <section class="card">
+        <h2>6) 图表分析</h2>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>缺失率（Missing %）</h3>
+            <div id="chartMissing" class="plot"></div>
+          </div>
+
+          <div class="panel">
+            <h3>数值列直方图</h3>
+            <div class="row">
+              <label class="inline">列：</label>
+              <select id="histSelect"></select>
+            </div>
+            <div id="chartHist" class="plot"></div>
+            <div id="histInfo" class="muted"></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top: 12px;">
+          <h3>数值列相关系数热力图</h3>
+          <div id="chartCorr" class="plot"></div>
+          <div id="corrHint" class="muted"></div>
+        </div>
+
+        <div class="panel" style="margin-top: 12px;">
+          <h3>单列分析（分布 / 分位数 / Top 值）</h3>
+          <div class="row">
+            <label class="inline">列：</label>
+            <select id="colSelect"></select>
+          </div>
+          <div id="colStats" class="muted"></div>
+          <div id="chartCol" class="plot"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
